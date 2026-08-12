@@ -70,6 +70,7 @@ func tasksHandler(w http.ResponseWriter, r *http.Request) {
 		store.mu.Lock()
 		store.tasks[input.ID] = input
 		store.mu.Unlock()
+		saveToDisk()
 
 		respondJSON(w, http.StatusCreated, input)
 
@@ -110,6 +111,7 @@ func taskByIDHandler(w http.ResponseWriter, r *http.Request) {
 		store.mu.Lock()
 		store.tasks[id] = input
 		store.mu.Unlock()
+		saveToDisk()
 
 		respondJSON(w, http.StatusOK, input)
 
@@ -117,6 +119,7 @@ func taskByIDHandler(w http.ResponseWriter, r *http.Request) {
 		store.mu.Lock()
 		delete(store.tasks, id)
 		store.mu.Unlock()
+		saveToDisk()
 		w.WriteHeader(http.StatusNoContent)
 
 	default:

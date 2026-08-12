@@ -24,6 +24,8 @@ func corsMiddleware(next http.Handler) http.Handler {
 }
 
 func main() {
+	loadFromDisk()
+
 	mux := http.NewServeMux()
 
 	// Go 1.22+ permite registrar método + caminho direto no padrão da rota.

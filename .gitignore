@@ -1,6 +1,8 @@
 # Backend
 backend/server
 backend/*.exe
+backend/tasks.json
+backend/data/
 
 # Frontend
 frontend/node_modules/
