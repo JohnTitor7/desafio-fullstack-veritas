@@ -1,3 +1,4 @@
+import { DragDropContext } from "@hello-pangea/dnd";
 import { useEffect, useState } from "react";
 import { api } from "./api";
 import Column from "./components/Column";
@@ -62,21 +63,33 @@ export default function App() {
     }
   }
 
-  async function handleMoveTask(task, newColumnIndex) {
-    const target = COLUMNS[newColumnIndex];
-    if (!target) return;
-
-    const previous = tasks;
-    const updatedLocal = { ...task, status: target.status };
-    setTasks((prev) => prev.map((t) => (t.id === task.id ? updatedLocal : t)));
-
-    try {
-      await api.updateTask(task.id, updatedLocal);
-    } catch {
-      setError("Não foi possível mover a tarefa.");
-      setTasks(previous);
-    }
+  async function moveTaskToStatus(task, newStatus) {
+  if (task.status === newStatus) return;
+  const previous = tasks;
+  const updatedLocal = { ...task, status: newStatus };
+  setTasks((prev) => prev.map((t) => (t.id === task.id ? updatedLocal : t)));
+  try {
+    await api.updateTask(task.id, updatedLocal);
+  } catch {
+    setError("Não foi possível mover a tarefa.");
+    setTasks(previous);
   }
+}
+
+function handleMoveTask(task, newColumnIndex) {
+  const target = COLUMNS[newColumnIndex];
+  if (!target) return;
+  moveTaskToStatus(task, target.status);
+}
+
+function handleDragEnd(result) {
+  const { source, destination, draggableId } = result;
+  if (!destination) return;
+  if (source.droppableId === destination.droppableId) return;
+  const task = tasks.find((t) => t.id === draggableId);
+  if (!task) return;
+  moveTaskToStatus(task, destination.droppableId);
+}
 
   return (
     <div className="app">

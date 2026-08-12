@@ -141,6 +141,18 @@ body {
   margin-bottom: 12px;
 }
 
+.column__list--over {
+  background: #f0f7f7;
+  border-radius: 8px;
+  outline: 2px dashed var(--primary);
+  outline-offset: 4px;
+}
+
+.task-card--dragging {
+  box-shadow: 0 8px 20px rgba(15, 82, 87, 0.25);
+  transform: rotate(-1.5deg);
+}
+
 .column__empty {
   color: var(--muted);
   font-size: 13px;

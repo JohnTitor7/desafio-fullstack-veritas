@@ -1,7 +1,6 @@
+import { Droppable, Draggable } from "@hello-pangea/dnd";
 import TaskCard from "./TaskCard";
 
-// Uma coluna do Kanban (ex: "A Fazer"). Só exibe as tarefas que
-// já vieram filtradas por status — quem filtra é o App.
 export default function Column({ column, tasks, columnIndex, totalColumns, onAddTask, onEditTask, onDeleteTask, onMoveTask }) {
   return (
     <section className="column">
@@ -11,22 +10,38 @@ export default function Column({ column, tasks, columnIndex, totalColumns, onAdd
         <span className="column__count">{tasks.length}</span>
       </header>
 
-      <div className="column__list">
-        {tasks.length === 0 && (
-          <p className="column__empty">Nenhuma tarefa aqui ainda.</p>
+      <Droppable droppableId={column.status}>
+        {(provided, snapshot) => (
+          <div
+            className={`column__list${snapshot.isDraggingOver ? " column__list--over" : ""}`}
+            ref={provided.innerRef}
+            {...provided.droppableProps}
+          >
+            {tasks.length === 0 && (
+              <p className="column__empty">Nenhuma tarefa aqui ainda.</p>
+            )}
+            {tasks.map((task, index) => (
+              <Draggable key={task.id} draggableId={task.id} index={index}>
+                {(dragProvided, dragSnapshot) => (
+                  <TaskCard
+                    task={task}
+                    canMoveLeft={columnIndex > 0}
+                    canMoveRight={columnIndex < totalColumns - 1}
+                    onEdit={() => onEditTask(task)}
+                    onDelete={() => onDeleteTask(task)}
+                    onMove={(direction) => onMoveTask(task, columnIndex + direction)}
+                    dragRef={dragProvided.innerRef}
+                    draggableProps={dragProvided.draggableProps}
+                    dragHandleProps={dragProvided.dragHandleProps}
+                    isDragging={dragSnapshot.isDragging}
+                  />
+                )}
+              </Draggable>
+            ))}
+            {provided.placeholder}
+          </div>
         )}
-        {tasks.map((task) => (
-          <TaskCard
-            key={task.id}
-            task={task}
-            canMoveLeft={columnIndex > 0}
-            canMoveRight={columnIndex < totalColumns - 1}
-            onEdit={() => onEditTask(task)}
-            onDelete={() => onDeleteTask(task)}
-            onMove={(direction) => onMoveTask(task, columnIndex + direction)}
-          />
-        ))}
-      </div>
+      </Droppable>
 
       <button className="column__add" onClick={() => onAddTask(column.status)}>
         + Nova tarefa
