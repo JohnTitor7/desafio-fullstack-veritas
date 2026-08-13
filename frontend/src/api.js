@@ -2,10 +2,17 @@ const API_URL = "http://localhost:8080";
 
 // Função auxiliar: faz o fetch e já trata erro de forma padronizada.
 async function request(path, options = {}) {
-  const res = await fetch(`${API_URL}${path}`, {
-    headers: { "Content-Type": "application/json" },
-    ...options,
-  });
+  let res;
+  try {
+    res = await fetch(`${API_URL}${path}`, {
+      headers: { "Content-Type": "application/json" },
+      ...options,
+    });
+  } catch {
+    // Erro de rede de verdade (servidor fora do ar, sem internet, etc.)
+    // — troca o "Failed to fetch" cru do navegador por uma mensagem clara.
+    throw new Error("Não foi possível conectar ao servidor. Verifique se o backend está rodando.");
+  }
 
   if (!res.ok) {
     const body = await res.json().catch(() => ({}));
