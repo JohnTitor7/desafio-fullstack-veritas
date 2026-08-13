@@ -23,9 +23,9 @@ func corsMiddleware(next http.Handler) http.Handler {
 	})
 }
 
-func main() {
-	loadFromDisk()
-
+// newRouter monta as rotas da aplicação. Extraído em função separada
+// para que os testes possam usar exatamente o mesmo roteamento do servidor real.
+func newRouter() http.Handler {
 	mux := http.NewServeMux()
 
 	// Go 1.22+ permite registrar método + caminho direto no padrão da rota.
@@ -39,7 +39,12 @@ func main() {
 		respondJSON(w, http.StatusOK, map[string]string{"status": "ok"})
 	})
 
-	handler := corsMiddleware(mux)
+	return corsMiddleware(mux)
+}
+
+func main() {
+	loadFromDisk()
+	handler := newRouter()
 
 	log.Println("Servidor rodando em http://localhost:8080")
 	if err := http.ListenAndServe(":8080", handler); err != nil {
