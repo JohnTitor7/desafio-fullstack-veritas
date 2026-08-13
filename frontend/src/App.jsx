@@ -63,33 +63,36 @@ export default function App() {
     }
   }
 
+  // Lógica compartilhada: usada tanto pelas setas (← →) quanto pelo drag-and-drop.
   async function moveTaskToStatus(task, newStatus) {
-  if (task.status === newStatus) return;
-  const previous = tasks;
-  const updatedLocal = { ...task, status: newStatus };
-  setTasks((prev) => prev.map((t) => (t.id === task.id ? updatedLocal : t)));
-  try {
-    await api.updateTask(task.id, updatedLocal);
-  } catch {
-    setError("Não foi possível mover a tarefa.");
-    setTasks(previous);
+    if (task.status === newStatus) return;
+    const previous = tasks;
+    const updatedLocal = { ...task, status: newStatus };
+    setTasks((prev) => prev.map((t) => (t.id === task.id ? updatedLocal : t)));
+    try {
+      await api.updateTask(task.id, updatedLocal);
+    } catch {
+      setError("Não foi possível mover a tarefa.");
+      setTasks(previous);
+    }
   }
-}
 
-function handleMoveTask(task, newColumnIndex) {
-  const target = COLUMNS[newColumnIndex];
-  if (!target) return;
-  moveTaskToStatus(task, target.status);
-}
+  function handleMoveTask(task, newColumnIndex) {
+    const target = COLUMNS[newColumnIndex];
+    if (!target) return;
+    moveTaskToStatus(task, target.status);
+  }
 
-function handleDragEnd(result) {
-  const { source, destination, draggableId } = result;
-  if (!destination) return;
-  if (source.droppableId === destination.droppableId) return;
-  const task = tasks.find((t) => t.id === draggableId);
-  if (!task) return;
-  moveTaskToStatus(task, destination.droppableId);
-}
+  // Chamada pelo @hello-pangea/dnd quando o usuário solta um card arrastado.
+  function handleDragEnd(result) {
+    const { source, destination, draggableId } = result;
+    if (!destination) return; // soltou fora de qualquer coluna
+    if (source.droppableId === destination.droppableId) return; // mesma coluna, nada muda
+
+    const task = tasks.find((t) => t.id === draggableId);
+    if (!task) return;
+    moveTaskToStatus(task, destination.droppableId);
+  }
 
   return (
     <div className="app">
@@ -108,21 +111,23 @@ function handleDragEnd(result) {
       {loading ? (
         <p className="app__loading">Carregando tarefas...</p>
       ) : (
-        <div className="board">
-          {COLUMNS.map((column, index) => (
-            <Column
-              key={column.status}
-              column={column}
-              columnIndex={index}
-              totalColumns={COLUMNS.length}
-              tasks={tasks.filter((t) => t.status === column.status)}
-              onAddTask={(status) => setModal({ mode: "create", status })}
-              onEditTask={(task) => setModal({ mode: "edit", task })}
-              onDeleteTask={handleDeleteTask}
-              onMoveTask={handleMoveTask}
-            />
-          ))}
-        </div>
+        <DragDropContext onDragEnd={handleDragEnd}>
+          <div className="board">
+            {COLUMNS.map((column, index) => (
+              <Column
+                key={column.status}
+                column={column}
+                columnIndex={index}
+                totalColumns={COLUMNS.length}
+                tasks={tasks.filter((t) => t.status === column.status)}
+                onAddTask={(status) => setModal({ mode: "create", status })}
+                onEditTask={(task) => setModal({ mode: "edit", task })}
+                onDeleteTask={handleDeleteTask}
+                onMoveTask={handleMoveTask}
+              />
+            ))}
+          </div>
+        </DragDropContext>
       )}
 
       {modal && (
